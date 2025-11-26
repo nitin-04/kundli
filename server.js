@@ -6,21 +6,17 @@ import { getBirthDetails } from './utils/prokerala.js';
 
 const app = express();
 
-// Fix __dirname for ES modules (required on Vercel)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve public folder correctly for Vercel
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html on GET /
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Main Kundli route
 app.post('/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
 
