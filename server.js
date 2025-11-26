@@ -1,11 +1,26 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { getBirthDetails } from './utils/prokerala.js';
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
 
+// Fix __dirname for ES modules (required on Vercel)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve public folder correctly for Vercel
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html on GET /
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Main Kundli route
 app.post('/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
 
@@ -46,5 +61,7 @@ app.post('/generate', async (req, res) => {
   `);
 });
 
-// app.listen(3000, () => console.log('Running at http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 export default app;

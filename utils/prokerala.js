@@ -45,6 +45,7 @@ export async function getBirthDetails(datetime, lat, lon) {
     //   'Full Birth Details Response:',
     //   JSON.stringify(response.data, null, 2)
     // );
+    // console.log('Loaded CLIENT_ID:', CLIENT_ID);
 
     return response.data;
   } catch (err) {
