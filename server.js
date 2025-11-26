@@ -46,4 +46,5 @@ app.post('/generate', async (req, res) => {
   `);
 });
 
-app.listen(3000, () => console.log('Running at http://localhost:3000'));
+// app.listen(3000, () => console.log('Running at http://localhost:3000'));
+export default app;
