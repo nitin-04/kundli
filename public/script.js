@@ -27,12 +27,9 @@ const nakshatras = [
   'Uttara Bhadrapada',
   'Revati',
 ];
-
 function getCalculatedNakshatra(longitude) {
   if (longitude === undefined || longitude === null) return '-';
-
-  const oneNakshatra = 13.333333;
-  const index = Math.floor(longitude / oneNakshatra);
+  const index = Math.floor(longitude / 13.333333);
   return nakshatras[index % 27];
 }
 
@@ -56,35 +53,35 @@ if (!rawData) {
     document.getElementById('personal-info').innerHTML = `
                <h3 class="font-bold text-orange-800 text-lg mb-3">Birth Details</h3>
                <div class="grid grid-cols-2 gap-y-2 text-sm">
-                  <div class="text-gray-500">Name</div><div class="font-semibold">${
+                  <div>Name: <span class="font-semibold">${
                     data.name || '-'
-                  }</div>
-                  <div class="text-gray-500">Date</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Date: <span class="font-semibold">${
                     data.dob || '-'
-                  }</div>
-                  <div class="text-gray-500">Time</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Time: <span class="font-semibold">${
                     data.tob || '-'
-                  }</div>
-                  <div class="text-gray-500">Place</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Place: <span class="font-semibold">${
                     data.place || '-'
-                  }</div>
+                  }</span></div>
                </div>
             `;
     document.getElementById('astro-info').innerHTML = `
                <h3 class="font-bold text-purple-800 text-lg mb-3">Astro Details</h3>
                <div class="grid grid-cols-2 gap-y-2 text-sm">
-                  <div class="text-gray-500">Ascendant</div><div class="font-semibold">${
+                  <div>Ascendant: <span class="font-semibold">${
                     ascendant.rasi.name
-                  }</div>
-                  <div class="text-gray-500">Moon Sign</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Moon: <span class="font-semibold">${
                     api.chandra_rasi?.name || '-'
-                  }</div>
-                  <div class="text-gray-500">Sun Sign</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Sun: <span class="font-semibold">${
                     api.soorya_rasi?.name || '-'
-                  }</div>
-                  <div class="text-gray-500">Nakshatra</div><div class="font-semibold">${
+                  }</span></div>
+                  <div>Nakshatra: <span class="font-semibold">${
                     api.nakshatra?.name || '-'
-                  }</div>
+                  }</span></div>
                </div>
             `;
 
@@ -93,22 +90,17 @@ if (!rawData) {
 
     planets.forEach((p) => {
       if (p.name === 'Ascendant') return;
-
       let degreeVal = (p.norm_degree || p.degree || 0).toFixed(2);
 
       let nakName = '-';
-
-      if (p.nakshatra && typeof p.nakshatra === 'object') {
+      if (p.nakshatra && typeof p.nakshatra === 'object')
         nakName = p.nakshatra.name;
-      } else if (p.nakshatra && typeof p.nakshatra === 'string') {
+      else if (p.nakshatra && typeof p.nakshatra === 'string')
         nakName = p.nakshatra;
-      }
-
       if (!nakName || nakName === '-') {
         let totalDeg = p.norm_degree;
-        if (!totalDeg && p.rasi && p.degree) {
+        if (!totalDeg && p.rasi && p.degree)
           totalDeg = p.rasi.id * 30 + parseFloat(p.degree);
-        }
         nakName = getCalculatedNakshatra(totalDeg);
       }
 
@@ -121,10 +113,10 @@ if (!rawData) {
 
       tableBody.innerHTML += `
                 <tr class="hover:bg-indigo-50">
-                  <td class="p-4 font-medium text-gray-900">${p.name}</td>
+                  <td class="p-4 font-medium">${p.name}</td>
                   <td class="p-4 text-gray-600">${p.rasi?.name || '-'}</td>
-                  <td class="p-4 text-gray-500 font-mono text-xs">${degreeVal}°</td>
-                  <td class="p-4 text-gray-600 text-xs">${nakName}</td>
+                  <td class="p-4 text-sm font-mono">${degreeVal}°</td>
+                  <td class="p-4 text-sm">${nakName}</td>
                   <td class="p-4">${isRetro}</td>
                   <td class="p-4 font-bold text-orange-600">${houseNum}</td>
                 </tr>
@@ -134,8 +126,7 @@ if (!rawData) {
     renderChart(planets, lagnaId, getHouse);
   } catch (err) {
     console.error(err);
-    document.getElementById('error-box').innerText =
-      'Error parsing data: ' + err.message;
+    document.getElementById('error-box').innerText = 'Error: ' + err.message;
     document.getElementById('error-box').classList.remove('hidden');
   }
 }
@@ -158,39 +149,57 @@ function renderChart(planets, lagnaId, getHouseFn) {
   }
 
   const config = {
-    1: {
-      num: { x: 50, y: 15, anchor: 'middle' },
-      list: { x: 50, y: 30 },
-    },
-    2: {
-      num: { x: 25, y: 12, anchor: 'middle' },
-      list: { x: 25, y: 20 },
-    },
-    3: { num: { x: 3, y: 25, anchor: 'start' }, list: { x: 15, y: 30 } },
-    4: { num: { x: 12, y: 50, anchor: 'start' }, list: { x: 30, y: 50 } },
-    5: { num: { x: 3, y: 75, anchor: 'start' }, list: { x: 15, y: 70 } },
+    // H8 Top Diamond
+    1: { num: { x: 50, y: 12, anchor: 'middle' }, list: { x: 50, y: 30 } },
+
+    // H9 Top Left Triangle
+    2: { num: { x: 17, y: 5, anchor: 'end' }, list: { x: 27, y: 10 } },
+
+    // H10 Left Top Triangle
+    3: { num: { x: 1, y: 19, anchor: 'start' }, list: { x: 12, y: 25 } },
+
+    // H11 Left Diamond
+    4: { num: { x: 6, y: 52, anchor: 'start' }, list: { x: 30, y: 50 } },
+
+    // H12 Left Bot Triangle
+    5: { num: { x: 2, y: 70, anchor: 'start' }, list: { x: 5, y: 75 } },
+
+    // H1 Bot Left Triangle
     6: {
-      num: { x: 25, y: 88, anchor: 'middle' },
-      list: { x: 25, y: 80 },
+      num: { x: 25, y: 99, anchor: 'middle' },
+      list: { x: 25, y: 85 },
     },
+
+    // H2 Bot Diamond
     7: {
-      num: { x: 50, y: 85, anchor: 'middle' },
-      list: { x: 50, y: 65 },
+      num: { x: 50, y: 94, anchor: 'middle' },
+      list: { x: 50, y: 70 },
     },
+
+    // H3 Bot Right Triangle
     8: {
-      num: { x: 75, y: 88, anchor: 'middle' },
-      list: { x: 75, y: 80 },
+      num: { x: 75, y: 99, anchor: 'middle' },
+      list: { x: 75, y: 85 },
     },
-    9: { num: { x: 97, y: 75, anchor: 'end' }, list: { x: 85, y: 70 } },
-    10: { num: { x: 87, y: 50, anchor: 'end' }, list: { x: 70, y: 50 } },
-    11: { num: { x: 97, y: 25, anchor: 'end' }, list: { x: 85, y: 30 } },
+
+    // H4 Right Bot Triangle
+    9: { num: { x: 99, y: 75, anchor: 'end' }, list: { x: 85, y: 75 } },
+
+    // H5 Right Diamond
+    10: { num: { x: 95, y: 52, anchor: 'end' }, list: { x: 70, y: 50 } },
+
+    // H6 Right Top Triangle
+    11: { num: { x: 99, y: 25, anchor: 'end' }, list: { x: 85, y: 25 } },
+
+    // H7 Top Right Triangle
     12: {
-      num: { x: 75, y: 12, anchor: 'middle' },
-      list: { x: 75, y: 20 },
+      num: { x: 75, y: 7, anchor: 'middle' },
+      list: { x: 75, y: 15 },
     },
   };
 
   let svgContent = '';
+
   for (let h = 1; h <= 12; h++) {
     const conf = config[h].num;
     svgContent += `<text x="${conf.x}" y="${conf.y}" text-anchor="${conf.anchor}" class="rashi-num" dominant-baseline="auto">${houseData[h].rashiNum}</text>`;
@@ -202,10 +211,9 @@ function renderChart(planets, lagnaId, getHouseFn) {
     const count = pList.length;
 
     if (count > 0) {
-      let fontSize = '6px';
-      if (count >= 4) fontSize = '5px';
-      if (count >= 6) fontSize = '4.5px';
+      let fontSize = '4px';
 
+      // Grid Logic
       let cols = Math.ceil(Math.sqrt(count));
       let rows = Math.ceil(count / cols);
 
