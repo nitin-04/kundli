@@ -17,8 +17,6 @@ export async function getAccessToken() {
       }),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
-    // console.log('Full API Response1:', response);
-
     return response.data.access_token;
   } catch (err) {
     console.log('Token Error:', err.response?.data || err.message);
@@ -29,27 +27,30 @@ export async function getAccessToken() {
 export async function getBirthDetails(datetime, lat, lon) {
   try {
     const accessToken = await getAccessToken();
-
     const response = await axios.get(`${BASE_URL}/v2/astrology/birth-details`, {
-      params: {
-        datetime,
-        coordinates: `${lat},${lon}`,
-        ayanamsa: 1,
-      },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      params: { datetime, coordinates: `${lat},${lon}`, ayanamsa: 1 },
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
-    // console.log('Full API Response2:', response);
-    // console.log(
-    //   'Full Birth Details Response:',
-    //   JSON.stringify(response.data, null, 2)
-    // );
-    // console.log('Loaded CLIENT_ID:', CLIENT_ID);
-
     return response.data;
   } catch (err) {
-    console.log('Prokerala API Error:', err.response?.data || err.message);
+    console.log('Birth Details Error:', err.response?.data || err.message);
+    return null;
+  }
+}
+
+export async function getPlanetPositions(datetime, lat, lon) {
+  try {
+    const accessToken = await getAccessToken();
+    const response = await axios.get(
+      `${BASE_URL}/v2/astrology/planet-position`,
+      {
+        params: { datetime, coordinates: `${lat},${lon}`, ayanamsa: 1 },
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.log('Planet Positions Error:', err.response?.data || err.message);
     return null;
   }
 }
