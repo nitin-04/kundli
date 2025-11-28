@@ -88,67 +88,71 @@ function showError(inputId, errorId) {
   document.getElementById(inputId).classList.add('border-red-500');
 }
 
-const placeInput = document.getElementById('place');
-const suggestionsBox = document.getElementById('suggestions');
-const loader = document.getElementById('placeLoader');
-let timer;
+document.addEventListener('DOMContentLoaded', () => {
+  const placeInput = document.getElementById('place');
+  const suggestionsBox = document.getElementById('suggestions');
+  const loader = document.getElementById('placeLoader');
+  let timer;
 
-placeInput.addEventListener('input', () => {
-  let query = placeInput.value.trim();
-
-  if (query.length < 2) {
-    suggestionsBox.innerHTML = '';
-    suggestionsBox.classList.add('hidden');
+  if (!placeInput || !suggestionsBox) {
+    console.error('❌ suggestions or place input NOT found!');
     return;
   }
 
-  clearTimeout(timer);
-  timer = setTimeout(() => fetchSuggestions(query), 400);
-});
+  placeInput.addEventListener('input', () => {
+    const query = placeInput.value.trim();
 
-async function fetchSuggestions(query) {
-  loader.classList.remove('hidden');
-
-  try {
-    const res = await fetch(`/search-city?q=${encodeURIComponent(query)}`);
-    const data = await res.json();
-
-    showSuggestions(data);
-  } catch (err) {
-    console.error('Error fetching city list:', err);
-  } finally {
-    loader.classList.add('hidden');
-  }
-}
-
-function showSuggestions(list) {
-  suggestionsBox.innerHTML = '';
-
-  if (!list.length) {
-    suggestionsBox.classList.add('hidden');
-    return;
-  }
-
-  list.forEach((item) => {
-    const div = document.createElement('div');
-    div.textContent = item.display_name;
-    div.className = 'p-2 cursor-pointer hover:bg-orange-100';
-
-    div.addEventListener('click', () => {
-      placeInput.value = item.display_name;
+    if (query.length < 2) {
+      suggestionsBox.innerHTML = '';
       suggestionsBox.classList.add('hidden');
-    });
+      return;
+    }
 
-    suggestionsBox.appendChild(div);
+    clearTimeout(timer);
+    timer = setTimeout(() => fetchSuggestions(query), 400);
   });
 
-  suggestionsBox.classList.remove('hidden');
-}
-
-document.addEventListener('click', (e) => {
-  if (!suggestionsBox) return;
-
-  if (!suggestionsBox.contains(e.target) && e.target !== placeInput) {
-    suggestionsBox.classList.add('hidden');
+  async function fetchSuggestions(query) {
+    loader.classList.remove('hidden');
+    try {
+      const res = await fetch(`/search-city?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      showSuggestions(data);
+    } catch (err) {
+      console.error('Error fetching city list:', err);
+    } finally {
+      loader.classList.add('hidden');
+    }
   }
+
+  function showSuggestions(list) {
+    suggestionsBox.innerHTML = '';
+
+    if (!list.length) {
+      suggestionsBox.classList.add('hidden');
+      return;
+    }
+
+    list.forEach((item) => {
+      const div = document.createElement('div');
+      div.textContent = item.display_name;
+      div.className =
+        'p-2 cursor-pointer hover:bg-orange-100 border-b last:border-b-0';
+
+      div.addEventListener('click', () => {
+        placeInput.value = item.display_name;
+        suggestionsBox.classList.add('hidden');
+      });
+
+      suggestionsBox.appendChild(div);
+    });
+
+    suggestionsBox.classList.remove('hidden');
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!suggestionsBox.contains(e.target) && e.target !== placeInput) {
+      suggestionsBox.classList.add('hidden');
+    }
+  });
 });
