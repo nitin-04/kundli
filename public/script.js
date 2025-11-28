@@ -213,7 +213,6 @@ function renderChart(planets, lagnaId, getHouseFn) {
     if (count > 0) {
       let fontSize = '4px';
 
-      // Grid Logic
       let cols = Math.ceil(Math.sqrt(count));
       let rows = Math.ceil(count / cols);
 
