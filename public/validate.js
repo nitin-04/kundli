@@ -1,101 +1,104 @@
-const dobInput = document.getElementById('dob');
-const today = new Date().toISOString().split('T')[0];
-dobInput.setAttribute('max', today);
-
-const form = document.getElementById('kundliForm');
-const submitBtn = document.getElementById('submitBtn');
-const placeLoader = document.getElementById('placeLoader');
-
-form.addEventListener('submit', async function (e) {
-  e.preventDefault();
-
-  document
-    .querySelectorAll('.error-msg')
-    .forEach((el) => (el.style.display = 'none'));
-  document
-    .querySelectorAll('input')
-    .forEach((el) => el.classList.remove('border-red-500'));
-
-  let isValid = true;
-
-  const nameVal = document.getElementById('name').value;
-  if (!/^[a-zA-Z\s]{2,50}$/.test(nameVal)) {
-    showError('name', 'nameError');
-    isValid = false;
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('kundliForm');
+  if (!form) {
+    return;
   }
 
-  if (!dobInput.value) {
-    showError('dob', 'dobError');
-    isValid = false;
+  const dobInput = document.getElementById('dob');
+  if (dobInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dobInput.setAttribute('max', today);
   }
 
-  const tobInput = document.getElementById('tob');
-  if (!tobInput.value) {
-    showError('tob', 'tobError');
-    isValid = false;
-  }
+  const submitBtn = document.getElementById('submitBtn');
+  const placeLoader = document.getElementById('placeLoader');
 
-  const placeInput = document.getElementById('place');
-  const city = placeInput.value.trim();
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-  if (city.length < 2) {
-    showError('place', 'placeError');
-    isValid = false;
-  } else if (isValid) {
-    placeLoader.classList.remove('hidden');
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'Checking Map...';
+    document
+      .querySelectorAll('.error-msg')
+      .forEach((el) => (el.style.display = 'none'));
+    document
+      .querySelectorAll('input')
+      .forEach((el) => el.classList.remove('border-red-500'));
 
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${city}&format=json&addressdetails=1&limit=1`
-      );
-      const data = await response.json();
+    let isValid = true;
 
-      placeLoader.classList.add('hidden');
-      submitBtn.disabled = false;
-      submitBtn.innerText = 'Generate';
+    const nameVal = document.getElementById('name').value;
+    if (!/^[a-zA-Z\s]{2,50}$/.test(nameVal)) {
+      showError('name', 'nameError');
+      isValid = false;
+    }
 
-      if (data.length === 0) {
-        document.getElementById('apiError').style.display = 'block';
-        placeInput.classList.add('border-red-500');
-      } else {
-        const foundPlace = data[0];
-        const displayName = foundPlace.display_name;
+    if (!dobInput.value) {
+      showError('dob', 'dobError');
+      isValid = false;
+    }
 
-        const userConfirmed = confirm(
-          `We found this location on the map:\n\n📍 ${displayName}\n\nIs this correct?`
+    const tobInput = document.getElementById('tob');
+    if (!tobInput.value) {
+      showError('tob', 'tobError');
+      isValid = false;
+    }
+
+    const placeInput = document.getElementById('place');
+    const city = placeInput.value.trim();
+
+    if (city.length < 2) {
+      showError('place', 'placeError');
+      isValid = false;
+    } else if (isValid) {
+      placeLoader.classList.remove('hidden');
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Checking Map...';
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${city}&format=json&addressdetails=1&limit=1`
         );
+        const data = await response.json();
 
-        if (userConfirmed) {
+        placeLoader.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Generate';
+
+        if (data.length === 0) {
+          document.getElementById('apiError').style.display = 'block';
+          placeInput.classList.add('border-red-500');
+        } else {
+          const foundPlace = data[0];
+          const displayName = foundPlace.display_name;
+
           placeInput.value = displayName;
           form.submit();
-        } else {
-          placeInput.focus();
         }
+      } catch (error) {
+        console.error(error);
+        alert('Internet Error: Could not verify location.');
+        placeLoader.classList.add('hidden');
+        submitBtn.disabled = false;
       }
-    } catch (error) {
-      console.error(error);
-      alert('Internet Error: Could not verify location.');
-      placeLoader.classList.add('hidden');
-      submitBtn.disabled = false;
     }
+  });
+
+  function showError(inputId, errorId) {
+    const errorEl = document.getElementById(errorId);
+    const inputEl = document.getElementById(inputId);
+    if (errorEl) errorEl.style.display = 'block';
+    if (inputEl) inputEl.classList.add('border-red-500');
   }
+
+  initAutocomplete();
 });
 
-function showError(inputId, errorId) {
-  document.getElementById(errorId).style.display = 'block';
-  document.getElementById(inputId).classList.add('border-red-500');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
+function initAutocomplete() {
   const placeInput = document.getElementById('place');
   const suggestionsBox = document.getElementById('suggestions');
   const loader = document.getElementById('placeLoader');
   let timer;
 
   if (!placeInput || !suggestionsBox) {
-    console.error('❌ suggestions or place input NOT found!');
     return;
   }
 
@@ -113,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function fetchSuggestions(query) {
-    loader.classList.remove('hidden');
+    if (loader) loader.classList.remove('hidden');
     try {
       const res = await fetch(`/search-city?q=${encodeURIComponent(query)}`);
       const data = await res.json();
@@ -121,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Error fetching city list:', err);
     } finally {
-      loader.classList.add('hidden');
+      if (loader) loader.classList.add('hidden');
     }
   }
 
@@ -137,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const div = document.createElement('div');
       div.textContent = item.display_name;
       div.className =
-        'p-2 cursor-pointer hover:bg-orange-100 border-b last:border-b-0';
+        'p-2 cursor-pointer hover:bg-orange-100 border-b last:border-b-0 text-black';
 
       div.addEventListener('click', () => {
         placeInput.value = item.display_name;
@@ -155,4 +158,4 @@ document.addEventListener('DOMContentLoaded', () => {
       suggestionsBox.classList.add('hidden');
     }
   });
-});
+}
