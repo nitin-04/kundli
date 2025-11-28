@@ -7,7 +7,7 @@ import {
   getBirthDetails,
   getPlanetPositions,
   getPanchang,
-} from './utils/prokerala.js';
+} from '../utils/prokerala.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -16,8 +16,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static('public'));
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static('public'));
 
 app.get('/search-city', async (req, res) => {
   const q = req.query.q;
@@ -78,9 +78,9 @@ async function getCoordinates(city) {
   }
 }
 
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve('public/index.html'));
-});
+// app.get('/', (req, res) => {
+//   res.sendFile(path.resolve('public/index.html'));
+// });
 
 app.post('/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
