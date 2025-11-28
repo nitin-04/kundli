@@ -79,7 +79,7 @@ async function getCoordinates(city) {
 }
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.resolve('public/index.html'));
 });
 
 app.post('/generate', async (req, res) => {
