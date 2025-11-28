@@ -146,6 +146,8 @@ function showSuggestions(list) {
 }
 
 document.addEventListener('click', (e) => {
+  if (!suggestionsBox) return;
+
   if (!suggestionsBox.contains(e.target) && e.target !== placeInput) {
     suggestionsBox.classList.add('hidden');
   }
