@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vedic Kundli Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -36,10 +37,12 @@
     </style>
   </head>
 
-  <body class="bg-gray-50 min-h-screen p-4 font-sans">
-    <div class="max-w-6xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-xl">
+  <body class="bg-orange-50 min-h-screen p-4 font-sans">
+    <div
+      class="max-w-6xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-orange-100"
+    >
       <h1
-        class="text-3xl md:text-4xl font-extrabold mb-10 text-center text-orange-800"
+        class="text-3xl md:text-4xl font-extrabold mb-12 text-center text-orange-800"
       >
         Vedic Kundli Report
       </h1>
@@ -61,20 +64,38 @@
           </p>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-6 mt-12">
           <div
-            id="personal-info"
-            class="bg-orange-50 p-6 rounded-2xl border border-orange-100 shadow-sm"
-          ></div>
+            class="bg-orange-50 p-6 rounded-2xl border border-orange-200 shadow-sm"
+          >
+            <div id="personal-info"></div>
+          </div>
+
           <div
-            id="astro-info"
-            class="bg-purple-50 p-6 rounded-2xl border border-purple-100 shadow-sm"
-          ></div>
+            class="bg-purple-50 p-6 rounded-2xl border border-purple-200 shadow-sm"
+          >
+            <div id="astro-info"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        <div
+          class="bg-yellow-50 p-6 rounded-2xl border border-yellow-200 shadow-sm"
+        >
+          <h2
+            class="text-xl font-bold text-yellow-800 mb-4 border-b border-yellow-200 pb-2"
+          >
+            Panchang (at Birth)
+          </h2>
+          <ul id="panchang-list" class="space-y-3 text-gray-700 text-sm">
+            <li class="text-gray-400">Loading...</li>
+          </ul>
         </div>
       </div>
 
       <div class="mt-12">
-        <h2 class="text-2xl font-bold mb-4 text-orange-700 border-b pb-2">
+        <h2 class="text-2xl font-bold mb-4 text-orange-700">
           Planetary Positions
         </h2>
         <div class="overflow-x-auto rounded-xl shadow border border-gray-200">
@@ -91,7 +112,7 @@
             </thead>
             <tbody
               id="planet-table-body"
-              class="divide-y divide-gray-100 text-xl md:text-base"
+              class="divide-y divide-gray-100 text-sm md:text-base"
             ></tbody>
           </table>
         </div>
@@ -100,9 +121,10 @@
       <div class="mt-12 text-center">
         <a
           href="/"
-          class="inline-block px-10 py-3 bg-orange-600 text-white font-bold rounded-full shadow-lg hover:bg-orange-700 transition"
-          >Generate Another</a
+          class="inline-block px-10 py-3 bg-gray-800 text-white font-bold rounded-full shadow-lg hover:bg-black transition transform hover:scale-105"
         >
+          Generate Another
+        </a>
       </div>
     </div>
 

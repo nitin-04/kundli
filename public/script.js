@@ -27,6 +27,7 @@ const nakshatras = [
   'Uttara Bhadrapada',
   'Revati',
 ];
+
 function getCalculatedNakshatra(longitude) {
   if (longitude === undefined || longitude === null) return '-';
   const index = Math.floor(longitude / 13.333333);
@@ -51,8 +52,8 @@ if (!rawData) {
     const lagnaId = ascendant.rasi.id;
 
     document.getElementById('personal-info').innerHTML = `
-               <h3 class="font-bold text-orange-800 text-lg mb-3">Birth Details</h3>
-               <div class="grid grid-cols-2 gap-y-2 text-sm">
+               <h3 class="text-center font-bold text-orange-800 text-xl mb-3">Birth Details</h3>
+               <div class="flex flex-col gap-4 text-lg">
                   <div>Name: <span class="font-semibold">${
                     data.name || '-'
                   }</span></div>
@@ -68,19 +69,19 @@ if (!rawData) {
                </div>
             `;
     document.getElementById('astro-info').innerHTML = `
-               <h3 class="font-bold text-purple-800 text-lg mb-3">Astro Details</h3>
-               <div class="grid grid-cols-2 gap-y-2 text-sm">
+               <h3 class="text-center font-bold text-purple-800 text-xl mb-3">Astro Details</h3>
+               <div class=" flex flex-col gap-4 text-lg">
                   <div>Ascendant: <span class="font-semibold">${
                     ascendant.rasi.name
                   }</span></div>
                   <div>Moon: <span class="font-semibold">${
-                    api.chandra_rasi?.name || '-'
+                    api.birth_details?.chandra_rasi?.name || '-'
                   }</span></div>
                   <div>Sun: <span class="font-semibold">${
-                    api.soorya_rasi?.name || '-'
+                    api.birth_details?.soorya_rasi?.name || '-'
                   }</span></div>
                   <div>Nakshatra: <span class="font-semibold">${
-                    api.nakshatra?.name || '-'
+                    api.birth_details?.nakshatra?.name || '-'
                   }</span></div>
                </div>
             `;
@@ -123,7 +124,57 @@ if (!rawData) {
               `;
     });
 
+    const panchang = api.panchang || {};
+    const panchangList = document.getElementById('panchang-list');
+    panchangList.innerHTML = '';
+
+    const getPval = (arr) =>
+      Array.isArray(arr) && arr.length > 0 ? arr[0].name : '-';
+
+    const formatTime = (isoString) => {
+      if (!isoString || isoString === '-') return '-';
+      try {
+        const date = new Date(isoString);
+
+        if (isNaN(date.getTime())) return isoString;
+
+        return date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      } catch (e) {
+        return isoString;
+      }
+    };
+
+    const pItems = [
+      { label: 'Tithi', value: getPval(panchang.tithi) },
+      { label: 'Nakshatra', value: getPval(panchang.nakshatra) },
+      { label: 'Yoga', value: getPval(panchang.yoga) },
+      { label: 'Karana', value: getPval(panchang.karana) },
+      { label: 'Weekday', value: panchang.vaara || panchang.day || '-' },
+
+      { label: 'Sunrise', value: formatTime(panchang.sunrise), icon: '☀️' },
+      { label: 'Sunset', value: formatTime(panchang.sunset), icon: '🌙' },
+    ];
+
+    pItems.forEach((item) => {
+      const labelContent = item.icon
+        ? `<span class="mr-1">${item.icon}</span> ${item.label}`
+        : item.label;
+
+      panchangList.innerHTML += `
+        <li class="flex justify-between items-center border-b border-yellow-100 pb-2 last:border-0">
+          <span class="text-gray-500 font-medium flex items-center">${labelContent}</span>
+          <span class="text-gray-800 font-bold text-right font-mono text-base">${item.value}</span>
+        </li>
+      `;
+    });
+
     renderChart(planets, lagnaId, getHouse);
+
+    const subHeader = document.getElementById('sub-header');
   } catch (err) {
     console.error(err);
     document.getElementById('error-box').innerText = 'Error: ' + err.message;

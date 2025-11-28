@@ -54,3 +54,17 @@ export async function getPlanetPositions(datetime, lat, lon) {
     return null;
   }
 }
+
+export async function getPanchang(datetime, lat, lon) {
+  try {
+    const accessToken = await getAccessToken();
+    const response = await axios.get(`${BASE_URL}/v2/astrology/panchang`, {
+      params: { datetime, coordinates: `${lat},${lon}`, ayanamsa: 1 },
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return response.data;
+  } catch (err) {
+    console.log('Panchang Error:', err.response?.data || err.message);
+    return null;
+  }
+}

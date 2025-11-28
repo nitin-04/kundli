@@ -2,7 +2,13 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getBirthDetails, getPlanetPositions } from './utils/prokerala.js';
+import axios from 'axios';
+import {
+  getBirthDetails,
+  getPlanetPositions,
+  // getMangalDosha,
+  getPanchang,
+} from './utils/prokerala.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -10,6 +16,30 @@ const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+async function getCoordinates(city) {
+  try {
+    console.log(`Looking up coordinates for: ${city}`);
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+      city
+    )}&format=json&limit=1`;
+
+    const response = await axios.get(url, {
+      headers: { 'User-Agent': 'KundliApp/1.0' },
+    });
+
+    if (response.data && response.data.length > 0) {
+      const { lat, lon } = response.data[0];
+      return { lat, lon };
+    } else {
+      console.log('City not found, defaulting to New Delhi');
+      return { lat: 28.6139, lon: 77.209 };
+    }
+  } catch (error) {
+    console.error('Geocoding Error:', error.message);
+    return { lat: 28.6139, lon: 77.209 };
+  }
+}
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -19,15 +49,20 @@ app.post('/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
   const datetime = `${dob}T${tob}:00+05:30`;
 
-  const lat = 28.6139;
-  const lon = 77.209;
+  const coords = await getCoordinates(place);
+  const lat = coords.lat;
+  const lon = coords.lon;
+
+  console.log(`Using Coordinates: ${lat}, ${lon}`);
 
   try {
     console.log('Fetching data for:', datetime);
 
-    const [birthData, planetData] = await Promise.all([
+    const [birthData, planetData, panchangData] = await Promise.all([
       getBirthDetails(datetime, lat, lon),
       getPlanetPositions(datetime, lat, lon),
+
+      getPanchang(datetime, lat, lon),
     ]);
 
     console.log('Birth Data Status:', birthData ? 'Received' : 'Failed');
@@ -54,11 +89,18 @@ app.post('/generate', async (req, res) => {
       dob,
       tob,
       place,
+      lat,
+      lon,
       api: {
-        ...birthData.data,
+        birth_details: birthData.data,
         planet_positions: planetsArray,
+        // dosha: doshaData?.data || null,
+        panchang: panchangData?.data || null,
       },
     };
+    // console.log('Stats:');
+    // console.log(`- Dosha Received: ${!!doshaData}`);
+    // console.log(`- Panchang Received: ${!!panchangData}`);
 
     res.send(`
       <script>
