@@ -6,9 +6,10 @@ import axios from 'axios';
 import {
   getBirthDetails,
   getPlanetPositions,
-  // getMangalDosha,
   getPanchang,
 } from './utils/prokerala.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,41 @@ const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/search-city', async (req, res) => {
+  const q = req.query.q;
+
+  if (!q || q.length < 2) return res.json([]);
+
+  try {
+    const response = await axios.get(
+      `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`,
+      {
+        params: {
+          namePrefix: q,
+          countryIds: 'IN',
+          limit: 10,
+          sort: '-population',
+        },
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPID_KEY,
+          'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com',
+        },
+      }
+    );
+
+    const result = response.data.data.map((city) => ({
+      display_name: `${city.city}, ${city.region}, India`,
+      lat: city.latitude,
+      lon: city.longitude,
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.json([]);
+  }
+});
 
 async function getCoordinates(city) {
   try {
@@ -61,12 +97,8 @@ app.post('/generate', async (req, res) => {
     const [birthData, planetData, panchangData] = await Promise.all([
       getBirthDetails(datetime, lat, lon),
       getPlanetPositions(datetime, lat, lon),
-
       getPanchang(datetime, lat, lon),
     ]);
-
-    console.log('Birth Data Status:', birthData ? 'Received' : 'Failed');
-    console.log('Planet Data Status:', planetData ? 'Received' : 'Failed');
 
     if (!birthData?.data || !planetData?.data) {
       console.error('API Error: Missing data payload');
@@ -82,8 +114,6 @@ app.post('/generate', async (req, res) => {
       planetsArray = Object.values(rawPlanets);
     }
 
-    console.log(`Processed ${planetsArray.length} planets.`);
-
     const kundli = {
       name,
       dob,
@@ -94,13 +124,9 @@ app.post('/generate', async (req, res) => {
       api: {
         birth_details: birthData.data,
         planet_positions: planetsArray,
-        // dosha: doshaData?.data || null,
         panchang: panchangData?.data || null,
       },
     };
-    // console.log('Stats:');
-    // console.log(`- Dosha Received: ${!!doshaData}`);
-    // console.log(`- Panchang Received: ${!!panchangData}`);
 
     res.send(`
       <script>

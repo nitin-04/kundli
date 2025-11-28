@@ -87,3 +87,66 @@ function showError(inputId, errorId) {
   document.getElementById(errorId).style.display = 'block';
   document.getElementById(inputId).classList.add('border-red-500');
 }
+
+const placeInput = document.getElementById('place');
+const suggestionsBox = document.getElementById('suggestions');
+const loader = document.getElementById('placeLoader');
+let timer;
+
+placeInput.addEventListener('input', () => {
+  let query = placeInput.value.trim();
+
+  if (query.length < 2) {
+    suggestionsBox.innerHTML = '';
+    suggestionsBox.classList.add('hidden');
+    return;
+  }
+
+  clearTimeout(timer);
+  timer = setTimeout(() => fetchSuggestions(query), 400);
+});
+
+async function fetchSuggestions(query) {
+  loader.classList.remove('hidden');
+
+  try {
+    const res = await fetch(`/search-city?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    showSuggestions(data);
+  } catch (err) {
+    console.error('Error fetching city list:', err);
+  } finally {
+    loader.classList.add('hidden');
+  }
+}
+
+function showSuggestions(list) {
+  suggestionsBox.innerHTML = '';
+
+  if (!list.length) {
+    suggestionsBox.classList.add('hidden');
+    return;
+  }
+
+  list.forEach((item) => {
+    const div = document.createElement('div');
+    div.textContent = item.display_name;
+    div.className = 'p-2 cursor-pointer hover:bg-orange-100';
+
+    div.addEventListener('click', () => {
+      placeInput.value = item.display_name;
+      suggestionsBox.classList.add('hidden');
+    });
+
+    suggestionsBox.appendChild(div);
+  });
+
+  suggestionsBox.classList.remove('hidden');
+}
+
+document.addEventListener('click', (e) => {
+  if (!suggestionsBox.contains(e.target) && e.target !== placeInput) {
+    suggestionsBox.classList.add('hidden');
+  }
+});
