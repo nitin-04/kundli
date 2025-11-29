@@ -1,22 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. SAFETY CHECK: If the form doesn't exist, we are on the wrong page. Stop.
   const form = document.getElementById('kundliForm');
   if (!form) return;
 
-  // --- Element Setup ---
   const dobInput = document.getElementById('dob');
   const placeInput = document.getElementById('place');
   const suggestionsBox = document.getElementById('suggestions');
   const placeLoader = document.getElementById('placeLoader');
   const submitBtn = document.getElementById('submitBtn');
 
-  // Set Max Date
   if (dobInput) {
     const today = new Date().toISOString().split('T')[0];
     dobInput.setAttribute('max', today);
   }
 
-  // --- Typeahead / Autocomplete Logic ---
   if (placeInput && suggestionsBox) {
     let timer;
 
@@ -48,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data.forEach((item) => {
           const div = document.createElement('div');
           div.textContent = item.display_name;
-          // Added text-black to ensure visibility
+
           div.className =
             'p-2 cursor-pointer hover:bg-orange-100 border-b last:border-b-0 text-black';
           div.addEventListener('click', () => {
@@ -65,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Close suggestions on outside click
     document.addEventListener('click', (e) => {
       if (!suggestionsBox.contains(e.target) && e.target !== placeInput) {
         suggestionsBox.classList.add('hidden');
@@ -73,11 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Form Validation ---
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    // Clear previous errors
     document
       .querySelectorAll('.error-msg')
       .forEach((el) => (el.style.display = 'none'));
@@ -111,20 +104,18 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.innerText = 'Verifying Location...';
 
       try {
-        // Double check location with Nominatim before submitting
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${city}&format=json&limit=1`
+          `/api/geocode?q=${encodeURIComponent(city)}`
         );
         const data = await response.json();
 
-        if (data.length === 0) {
+        if (!data.success) {
           document.getElementById('apiError').style.display = 'block';
           placeInput.classList.add('border-red-500');
           submitBtn.disabled = false;
           submitBtn.innerText = 'Generate';
         } else {
-          // Success! Update place to full name and submit
-          placeInput.value = data[0].display_name;
+          placeInput.value = data.displayName || city;
           form.submit();
         }
       } catch (error) {

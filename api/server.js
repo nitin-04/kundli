@@ -17,15 +17,12 @@ const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve the static frontend from the "public" folder for local dev / Node hosting
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Root route - serve the form page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// API route used by the frontend autocomplete
 app.get('/api/search-city', async (req, res) => {
   const q = req.query.q;
 
@@ -69,23 +66,50 @@ async function getCoordinates(city) {
     )}&format=json&limit=1`;
 
     const response = await axios.get(url, {
-      headers: { 'User-Agent': 'KundliApp/1.0' },
+      headers: { 'User-Agent': 'KundliApp/1.0 (kundli-app.vercel.app)' },
     });
 
     if (response.data && response.data.length > 0) {
-      const { lat, lon } = response.data[0];
-      return { lat, lon };
+      const { lat, lon, display_name } = response.data[0];
+      return { lat, lon, displayName: display_name };
     } else {
       console.log('City not found, defaulting to New Delhi');
-      return { lat: 28.6139, lon: 77.209 };
+      return {
+        lat: 28.6139,
+        lon: 77.209,
+        displayName: 'New Delhi, Delhi, India',
+      };
     }
   } catch (error) {
     console.error('Geocoding Error:', error.message);
-    return { lat: 28.6139, lon: 77.209 };
+    return {
+      lat: 28.6139,
+      lon: 77.209,
+      displayName: 'New Delhi, Delhi, India',
+    };
   }
 }
 
-// API route that generates the kundli and redirects to result page
+app.get('/api/geocode', async (req, res) => {
+  const query = req.query.q;
+  if (!query || query.length < 2)
+    return res.status(400).json({ success: false, error: 'Query required' });
+
+  try {
+    const coords = await getCoordinates(query);
+    if (!coords?.lat || !coords?.lon) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Location not found' });
+    }
+
+    return res.json({ success: true, ...coords });
+  } catch (error) {
+    console.error('Geocode proxy error:', error);
+    res.status(500).json({ success: false, error: 'Lookup failed' });
+  }
+});
+
 app.post('/api/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
   const datetime = `${dob}T${tob}:00+05:30`;
@@ -148,11 +172,9 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Local development server (not used on Vercel)
 const PORT = process.env.PORT || 3000;
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-// Export a handler for Vercel's Node runtime
 export default (req, res) => app(req, res);
