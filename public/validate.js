@@ -38,7 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (placeLoader) placeLoader.classList.remove('hidden');
 
       try {
-        const res = await fetch(`/search-city?q=${encodeURIComponent(query)}`);
+        const res = await fetch(
+          `/api/search-city?q=${encodeURIComponent(query)}`
+        );
         console.log(`📡 Server response status: ${res.status}`);
 
         const data = await res.json();
