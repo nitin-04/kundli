@@ -16,10 +16,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(express.static(path.join(__dirname, 'public')));
-// app.use(express.static('public'));
 
-app.get('/search-city', async (req, res) => {
+// Serve the static frontend from the "public" folder for local dev / Node hosting
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Root route - serve the form page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// API route used by the frontend autocomplete
+app.get('/api/search-city', async (req, res) => {
   const q = req.query.q;
 
   if (!q || q.length < 2) return res.json([]);
@@ -78,11 +85,8 @@ async function getCoordinates(city) {
   }
 }
 
-// app.get('/', (req, res) => {
-//   res.sendFile(path.resolve('public/index.html'));
-// });
-
-app.post('/generate', async (req, res) => {
+// API route that generates the kundli and redirects to result page
+app.post('/api/generate', async (req, res) => {
   const { name, dob, tob, place } = req.body;
   const datetime = `${dob}T${tob}:00+05:30`;
 
@@ -144,7 +148,11 @@ app.post('/generate', async (req, res) => {
   }
 });
 
+// Local development server (not used on Vercel)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
-export default app;
+// Export a handler for Vercel's Node runtime
+export default (req, res) => app(req, res);
